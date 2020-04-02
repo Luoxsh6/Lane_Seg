@@ -1,7 +1,7 @@
 ## 简介
-这个是本人练习的项目，数据集来自百度2019年的[车道线识别挑战赛](https://aistudio.baidu.com/aistudio/competition/detail/5)，参考了初赛第一名的作者的[paddlepaddle版代码](https://github.com/gujingxiao/Lane-Segmentation-Solution-For-BaiduAI-Autonomous-Driving-Competition)（后面称为`baseline`）。
+数据集来自百度2019年的[车道线识别挑战赛](https://aistudio.baidu.com/aistudio/competition/detail/5)，参考了初赛第一名的作者的[paddlepaddle版代码](https://github.com/gujingxiao/Lane-Segmentation-Solution-For-BaiduAI-Autonomous-Driving-Competition)（后面称为`baseline`）。
 
-写这个代码的时候，该比赛已经结束，所以没法知道在官方测试集上的成绩，但在训练集上划分出来的验证集上，最后得到的miou是0.684。
+在训练集上划分出来的验证集上，最后得到的miou是0.684。
 
 ## 特色
 1. 对unet做了一些抽象，可以较容易地替换backbone成其他的，比如不同版本的resnet。见`nets/unet.py`。
@@ -11,11 +11,6 @@
 5. 参考了baseline的思路，先后将裁剪后的原图缩小到3种分辨率（768x256, 1024x384, 1536x512）进行训练，比如在768x256下训练了十来个epoch后，将最后的权重作为预训练权重，在1024x384的分辨率上重新训练。由于本人训练时的显存只有15G，所以对应这三种分辨率的batchsize分别是8/4/2。
 6. 对原图进行分辨率缩放时，采用的是双线性插值模式（cv2.INTER_LINEAR）。但对于标签图进行缩放时，采用的是最近邻模式（cv2.INTER_NEAREST），因为标签的像素值有特殊的含义，如果用双线性插值的话，缩放后会出现约定范围之外的像素值。相应地，对于推断结果，即预测的标签图，需要恢复成原图尺寸，也要采用最近邻模式。见`utils/data.py`
 
-## 改进思路
-1. 训练的时候发现，个别class的iou特别低，直接拉低了miou。应该是因为训练数据不平衡导致的，可以考虑数据增强，或者对这些class使用加权。
-2. 训练出0.684的miou，采用的是最基础的unet网络，backbone都没换。但可以考虑尝试deeplab v3+之类的，看是否有更好的效果，最后还可以考虑融合。
-3. 尝试不同训练阶段使用不同的loss或者组合。
-4. 尝试其他优化器？
 
 ## 文件说明
 
